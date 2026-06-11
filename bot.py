@@ -1406,11 +1406,11 @@ async def rules_command(message: Message):
 
         "1. Participants must be 21 years of age or older.\n"
         "2. Participants must be members of the BJ Football Predictor group.\n"
-        "3. To join the group, first apply through Telegram via +251 912 688 555 (Ashe).\n\n"
+        "3. To join the group, click the link https://t.me/BeabJoelPredictor .\n\n"
 
         "📝 Registration and Approval\n\n"
 
-        "1. To be approved by the administrator, each participant must pay 220 ETB for each league competition.\n"
+        "1. To be approved by the administrator, each participant must deposit for each league competition.\n"
         "2. Account details for payment will be provided only by the administrator and posted on BJ Football Predictor group.\n\n"
 
         "⚠️ Important:\n"
