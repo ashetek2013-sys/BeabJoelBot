@@ -953,28 +953,6 @@ async def set_result(message: Message):
 
     if message.from_user.id != ADMIN_ID:
         return
-
-    cursor.execute(
-        "SELECT result FROM matches WHERE id=?",
-        (match_id,)
-    )
-
-    match = cursor.fetchone()
-
-    if not match:
-        await message.answer("❌ Match not found.")
-        conn.close()
-        return
-
-    if match[0]:
-        await message.answer(
-            "❌ A result already exists for this match.\n\n"
-            "Use /updateresult instead."
-        )
-        conn.close()
-        return
-
-
     parts = message.text.split()
 
     if len(parts) != 3:
@@ -989,6 +967,26 @@ async def set_result(message: Message):
     conn = sqlite3.connect("beabjoel.db")
     cursor = conn.cursor()
 
+    cursor.execute(
+        "SELECT result FROM matches WHERE id=?",
+        (match_id,)
+    )
+
+    match = cursor.fetchone()
+
+    if not match:
+        await message.answer("❌ Match not found.")
+        conn.close()
+        return
+
+    if match[0]:
+        conn.close()
+        await message.answer(
+            "❌ A result already exists for this match.\n\n"
+            "Use /updateresult instead."
+        )
+        return
+ 
     cursor.execute(
         "UPDATE matches SET result=? WHERE id=?",
         (actual_score, match_id)
@@ -1022,7 +1020,6 @@ async def set_result(message: Message):
         )
 
     conn.commit()
-    conn.close()
 
     cursor.execute(
        """
@@ -1048,6 +1045,8 @@ async def set_result(message: Message):
        )
 
        position += 1
+
+    conn.close()
 
     await message.answer(leaderboard)
 
