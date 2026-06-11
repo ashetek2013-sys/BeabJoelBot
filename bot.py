@@ -551,10 +551,10 @@ async def predict_match(message: Message):
     user = cursor.fetchone()
 
     if not user or user[0] != 1:
+        conn.close()
         await message.answer(
             "❌ Your account has not been approved yet."
         )
-        conn.close()
         return
 
     # Check match exists
@@ -570,8 +570,8 @@ async def predict_match(message: Message):
     match = cursor.fetchone()
 
     if not match:
-        await message.answer("❌ Match not found.")
         conn.close()
+        await message.answer("❌ Match not found.")
         return
 
     match_time = match[0]
@@ -579,11 +579,12 @@ async def predict_match(message: Message):
 
     # Check if result already entered
     if result:
+        conn.close()
         await message.answer(
             "❌ Predictions are closed for this match."
         )
-        conn.close()
         return
+
 
     # Check deadline
     deadline = datetime.strptime(
@@ -592,11 +593,12 @@ async def predict_match(message: Message):
     )
 
     if datetime.now() > deadline:
+        conn.close()
         await message.answer(
             "❌ Prediction deadline has expired."
         )
-        conn.close()
         return
+
 
     # Check existing prediction
     cursor.execute(
