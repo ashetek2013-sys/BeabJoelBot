@@ -44,6 +44,18 @@ CREATE TABLE IF NOT EXISTS scores (
 )
 """)
 
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT
+)
+""")
+
+cursor.execute("""
+ALTER TABLE matches
+ADD COLUMN manually_open INTEGER DEFAULT 0
+""")
+
 conn.commit()
 conn.close()
 

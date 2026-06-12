@@ -518,6 +518,24 @@ async def predict_match(message: Message):
 
     cursor.execute(
         """
+        SELECT value
+        FROM settings
+        WHERE key='predictions_blocked'
+        """
+    )
+
+    setting = cursor.fetchone()
+
+    if setting and setting[0] == "1":
+        await message.answer(
+            "❌ Predictions are currently blocked by the administrator."
+        )
+    conn.close()
+    return
+
+
+    cursor.execute(
+        """
         SELECT match_time,
                result,
                prediction_blocked
@@ -577,10 +595,9 @@ async def predict_match(message: Message):
         )
         return
 
-    # Check match exists
     cursor.execute(
         """
-        SELECT match_time, result
+        SELECT match_time, result, manually_open
         FROM matches
         WHERE id=?
         """,
@@ -589,13 +606,15 @@ async def predict_match(message: Message):
 
     match = cursor.fetchone()
 
+    match_time = match[0]
+    result = match[1]
+    manually_open = match[2]
+
     if not match:
         conn.close()
         await message.answer("❌ Match not found.")
         return
 
-    match_time = match[0]
-    result = match[1]
 
     # Check if result already entered
     if result:
@@ -608,11 +627,18 @@ async def predict_match(message: Message):
 
     # Check deadline
     deadline = datetime.strptime(
-        match_time,
-        "%Y-%m-%d %H:%M"
+     match_time,
+     "%Y-%m-%d %H:%M"
     )
 
-    if datetime.now() > deadline:
+    if datetime.now() > deadline and manually_open != 1:
+      await message.answer(
+        "❌ Prediction deadline has expired."
+      )
+    conn.close()
+    return
+
+    if datetime.now() > deadline and manually_open != 1:
         conn.close()
         await message.answer(
             "❌ Prediction deadline has expired."
@@ -672,11 +698,59 @@ async def predict_match(message: Message):
             f"Match {match_id}: {score}"
         )
 
+        conn.commit()
+        conn.close()
+
+        await message.answer(reply)
+
+
+@dp.message(Command("blockallpredictions"))
+async def block_all_predictions(message: Message):
+
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    conn = sqlite3.connect("beabjoel.db")
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        UPDATE settings
+        SET value='1'
+        WHERE key='predictions_blocked'
+        """
+    )
+
     conn.commit()
     conn.close()
 
-    await message.answer(reply)
+    await message.answer(
+        "🔒 All predictions have been blocked."
+    )
 
+@dp.message(Command("unblockallpredictions"))
+async def unblock_all_predictions(message: Message):
+
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    conn = sqlite3.connect("beabjoel.db")
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        UPDATE settings
+        SET value='0'
+        WHERE key='predictions_blocked'
+        """
+    )
+
+    conn.commit()
+    conn.close()
+
+    await message.answer(
+        "🔓 All predictions have been reopened."
+    )
 
 @dp.message(Command("blockpredict"))
 async def block_predict(message: Message):
