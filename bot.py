@@ -516,6 +516,26 @@ async def show_matches(message: Message):
 @dp.message(Command("predict"))
 async def predict_match(message: Message):
 
+    cursor.execute(
+        """
+        SELECT match_time,
+               result,
+               prediction_blocked
+        FROM matches
+        WHERE id=?
+        """,
+        (match_id,)
+    )
+
+    match = cursor.fetchone()
+
+    if match[2] == 1:
+        await message.answer(
+            "❌ Predictions are blocked for this match."
+        )
+        conn.close()
+        return
+
     parts = message.text.split()
 
     if len(parts) != 3:
@@ -656,6 +676,46 @@ async def predict_match(message: Message):
     conn.close()
 
     await message.answer(reply)
+
+
+@dp.message(Command("blockpredict"))
+async def block_predict(message: Message):
+
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    parts = message.text.split()
+
+    if len(parts) != 2:
+        await message.answer(
+            "Usage:\n/blockpredict MATCH_ID"
+        )
+        return
+
+    try:
+        match_id = int(parts[1])
+    except ValueError:
+        await message.answer("❌ Invalid Match ID.")
+        return
+
+    conn = sqlite3.connect("beabjoel.db")
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        UPDATE matches
+        SET prediction_blocked=1
+        WHERE id=?
+        """,
+        (match_id,)
+    )
+
+    conn.commit()
+    conn.close()
+
+    await message.answer(
+        f"🔒 Predictions blocked for Match {match_id}"
+    )
 
 
 @dp.message(Command("resetleague"))
@@ -1420,13 +1480,14 @@ async def rules_command(message: Message):
 
         "1. Each league competition will consist of three or more matches.\n"
         "2. Participants must predict the exact score of each match before the deadline.\n"
-        "3. All participants and their predictions will be posted on BJ Football Predictor group after the prediction deadline.\n"
-        "4. Points are awarded as follows:\n"
+        "3. All deadlines use East African Time.\n"
+        "4. All participants and their predictions will be posted on BJ Football Predictor group after the prediction deadline.\n"
+        "5. Points are awarded as follows:\n"
         "   • 6 points for predicting the exact score correctly.\n"
         "   • 3 points for correctly predicting the match outcome but not the exact score.\n"
         "   • 0 points for an incorrect prediction.\n\n"
 
-        "5. Total points earned across all matches determine each participant's final score.\n\n"
+        "6. Total points earned across all matches determine each participant's final score.\n\n"
 
         "🏆 Winner and Prize\n\n"
 
@@ -1562,6 +1623,102 @@ async def my_points(message: Message):
     )
 
 
+@dp.message(Command("deleteresult"))
+async def delete_result(message: Message):
+
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    parts = message.text.split()
+
+    if len(parts) != 2:
+        await message.answer(
+            "Usage:\n/deleteresult MATCH_ID"
+        )
+        return
+
+    try:
+        match_id = int(parts[1])
+    except ValueError:
+        await message.answer("❌ Invalid Match ID.")
+        return
+
+    conn = sqlite3.connect("beabjoel.db")
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT result FROM matches WHERE id=?",
+        (match_id,)
+    )
+
+    match = cursor.fetchone()
+
+    if not match:
+        conn.close()
+        await message.answer("❌ Match not found.")
+        return
+
+    old_result = match[0]
+
+    if not old_result:
+        conn.close()
+        await message.answer("❌ No result found.")
+        return
+
+    cursor.execute(
+        """
+        SELECT user_id, predicted_score
+        FROM predictions
+        WHERE match_id=?
+        """,
+        (match_id,)
+    )
+
+    predictions = cursor.fetchall()
+
+    for user_id, prediction in predictions:
+
+        points = 0
+
+        if get_outcome(prediction) == get_outcome(old_result):
+            points += 3
+
+        if prediction == old_result:
+            points += 3
+
+        cursor.execute(
+            """
+            UPDATE scores
+            SET points = points - ?
+            WHERE user_id=?
+            """,
+            (points, user_id)
+        )
+
+    cursor.execute(
+        """
+        UPDATE matches
+        SET result=NULL
+        WHERE id=?
+        """,
+        (match_id,)
+    )
+
+    conn.commit()
+    conn.close()
+
+    await message.answer(
+        f"✅ Result deleted.\n\n"
+        f"Match ID: {match_id}\n"
+        f"Deleted Result: {old_result}"
+    )
+
+
+
+
+
+
+
 @dp.message(Command("dbstats"))
 async def dbstats(message: Message):
 
@@ -1674,6 +1831,7 @@ async def restore_matches(message: Message):
     await message.answer(
         f"✅ {inserted} matches restored."
     )
+
 
 def insert_prediction(cursor, user_id, match_id, score):
     cursor.execute(
