@@ -1562,6 +1562,33 @@ async def my_points(message: Message):
     )
 
 
+@dp.message(Command("dbstats"))
+async def dbstats(message: Message):
+
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    conn = sqlite3.connect("beabjoel.db")
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM users")
+    users = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM matches")
+    matches = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM predictions")
+    predictions = cursor.fetchone()[0]
+
+    conn.close()
+
+    await message.answer(
+        f"Users: {users}\n"
+        f"Matches: {matches}\n"
+        f"Predictions: {predictions}"
+    )
+
+
 async def main():
     print("BeabJoel Bot is running...")
     await dp.start_polling(bot)
