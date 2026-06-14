@@ -51,10 +51,10 @@ CREATE TABLE IF NOT EXISTS settings (
 )
 """)
 
-cursor.execute("""
-ALTER TABLE matches
-ADD COLUMN manually_open INTEGER DEFAULT 0
-""")
+#cursor.execute("""
+#ALTER TABLE matches
+#ADD COLUMN manually_open INTEGER DEFAULT 0
+#""")
 
 conn.commit()
 conn.close()
