@@ -516,49 +516,11 @@ async def show_matches(message: Message):
 @dp.message(Command("predict"))
 async def predict_match(message: Message):
 
-    cursor.execute(
-        """
-        SELECT value
-        FROM settings
-        WHERE key='predictions_blocked'
-        """
-    )
-
-    setting = cursor.fetchone()
-
-    if setting and setting[0] == "1":
-        await message.answer(
-            "❌ Predictions are currently blocked by the administrator."
-        )
-    conn.close()
-    return
-
-
-    cursor.execute(
-        """
-        SELECT match_time,
-               result,
-               prediction_blocked
-        FROM matches
-        WHERE id=?
-        """,
-        (match_id,)
-    )
-
-    match = cursor.fetchone()
-
-    if match[2] == 1:
-        await message.answer(
-            "❌ Predictions are blocked for this match."
-        )
-        conn.close()
-        return
-
     parts = message.text.split()
 
     if len(parts) != 3:
         await message.answer(
-            "Usage:\n"
+            "⚽ Usage:\n"
             "/predict MATCH_ID SCORE\n\n"
             "Example:\n"
             "/predict 1 2-1"
@@ -579,14 +541,12 @@ async def predict_match(message: Message):
             "Example:\n"
             "/predict 1 2-1"
         )
-        conn.close()
         return
-
-
 
     conn = sqlite3.connect("beabjoel.db")
     cursor = conn.cursor()
 
+    # Check if all predictions are blocked
     cursor.execute(
         """
         SELECT value
@@ -598,12 +558,11 @@ async def predict_match(message: Message):
     setting = cursor.fetchone()
 
     if setting and setting[0] == "1":
+        conn.close()
         await message.answer(
             "🔒 Predictions are currently blocked by the administrator."
         )
-        conn.close()
         return
-
 
     # Check approval
     cursor.execute(
@@ -624,9 +583,10 @@ async def predict_match(message: Message):
         )
         return
 
+    # Check match
     cursor.execute(
         """
-        SELECT match_time, result, manually_open
+        SELECT match_time, result
         FROM matches
         WHERE id=?
         """,
@@ -635,17 +595,15 @@ async def predict_match(message: Message):
 
     match = cursor.fetchone()
 
-    match_time = match[0]
-    result = match[1]
-    manually_open = match[2]
-
     if not match:
         conn.close()
         await message.answer("❌ Match not found.")
         return
 
+    match_time = match[0]
+    result = match[1]
 
-    # Check if result already entered
+    # Result already entered
     if result:
         conn.close()
         await message.answer(
@@ -653,29 +611,20 @@ async def predict_match(message: Message):
         )
         return
 
-
-    # Check deadline
+    # Deadline check
     deadline = datetime.strptime(
-     match_time,
-     "%Y-%m-%d %H:%M"
+        match_time,
+        "%Y-%m-%d %H:%M"
     )
 
-    if datetime.now() > deadline and manually_open != 1:
-      await message.answer(
-        "❌ Prediction deadline has expired."
-      )
-    conn.close()
-    return
-
-    if datetime.now() > deadline and manually_open != 1:
+    if datetime.now() > deadline:
         conn.close()
         await message.answer(
-            "❌ Prediction deadline has expired."
+            "⏰ Prediction deadline has expired."
         )
         return
 
-
-    # Check existing prediction
+    # Existing prediction?
     cursor.execute(
         """
         SELECT id
@@ -688,7 +637,6 @@ async def predict_match(message: Message):
     existing = cursor.fetchone()
 
     if existing:
-
         cursor.execute(
             """
             UPDATE predictions
@@ -708,7 +656,6 @@ async def predict_match(message: Message):
         )
 
     else:
-
         cursor.execute(
             """
             INSERT INTO predictions
@@ -727,11 +674,10 @@ async def predict_match(message: Message):
             f"Match {match_id}: {score}"
         )
 
-        conn.commit()
-        conn.close()
+    conn.commit()
+    conn.close()
 
-        await message.answer(reply)
-
+    await message.answer(reply)
 
 @dp.message(Command("blockallpredictions"))
 async def block_all_predictions(message: Message):
@@ -781,112 +727,6 @@ async def unblock_all_predictions(message: Message):
         "🔓 All predictions have been reopened."
     )
 
-@dp.message(Command("blockprediction"))
-async def block_prediction(message: Message):
-
-    if message.from_user.id != ADMIN_ID:
-        return
-
-    parts = message.text.split()
-
-    if len(parts) != 2:
-        await message.answer(
-            "Usage:\n/blockprediction MATCH_ID"
-        )
-        return
-
-    try:
-        match_id = int(parts[1])
-    except ValueError:
-        await message.answer("❌ Invalid Match ID.")
-        return
-
-    conn = sqlite3.connect("beabjoel.db")
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        SELECT id
-        FROM matches
-        WHERE id=?
-        """,
-        (match_id,)
-    )
-
-    if not cursor.fetchone():
-        conn.close()
-        await message.answer("❌ Match not found.")
-        return
-
-    cursor.execute(
-        """
-        UPDATE matches
-        SET manually_open=0
-        WHERE id=?
-        """,
-        (match_id,)
-    )
-
-    conn.commit()
-    conn.close()
-
-    await message.answer(
-        f"🔒 Predictions blocked for Match {match_id}."
-    )
-
-
-@dp.message(Command("unblockprediction"))
-async def unblock_prediction(message: Message):
-
-    if message.from_user.id != ADMIN_ID:
-        return
-
-    parts = message.text.split()
-
-    if len(parts) != 2:
-        await message.answer(
-            "Usage:\n/unblockprediction MATCH_ID"
-        )
-        return
-
-    try:
-        match_id = int(parts[1])
-    except ValueError:
-        await message.answer("❌ Invalid Match ID.")
-        return
-
-    conn = sqlite3.connect("beabjoel.db")
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        SELECT id
-        FROM matches
-        WHERE id=?
-        """,
-        (match_id,)
-    )
-
-    if not cursor.fetchone():
-        conn.close()
-        await message.answer("❌ Match not found.")
-        return
-
-    cursor.execute(
-        """
-        UPDATE matches
-        SET manually_open=1
-        WHERE id=?
-        """,
-        (match_id,)
-    )
-
-    conn.commit()
-    conn.close()
-
-    await message.answer(
-        f"🔓 Predictions reopened for Match {match_id}."
-    )
 
 
 @dp.message(Command("resetleague"))
