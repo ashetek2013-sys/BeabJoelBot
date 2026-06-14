@@ -44,11 +44,18 @@ CREATE TABLE IF NOT EXISTS scores (
 )
 """)
 
+# Settings table
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
     value TEXT
 )
+""")
+
+# Default setting
+cursor.execute("""
+INSERT OR IGNORE INTO settings (key, value)
+VALUES ('predictions_blocked', '0')
 """)
 
 #cursor.execute("""
