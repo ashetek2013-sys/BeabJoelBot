@@ -1772,7 +1772,7 @@ async def restore_users(message: Message):
         (6011155782, "Salim Mohammed"),
         (5414134998, "Sami Lemma"),
         (7800685972, "Thomas Girma"),
-        (689631553, "Tk")
+        (689631553, "Tk"),
         (474065434, "Wasihun Zeru"),
     ]
 
