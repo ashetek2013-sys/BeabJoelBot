@@ -1259,7 +1259,7 @@ async def commands_list(message: Message):
         "/mypoints - View points\n"
         "/table - League table\n"
         "/matchresults - Match results\n"
-        "/help - Help"
+        "/help - Help\n"
         "/rules - League rules"
     )
 
@@ -1727,234 +1727,234 @@ async def delete_result(message: Message):
 
 
 
-@dp.message(Command("dbstats"))
-async def dbstats(message: Message):
+# @dp.message(Command("dbstats"))
+# async def dbstats(message: Message):
 
-    if message.from_user.id != ADMIN_ID:
-        return
+#     if message.from_user.id != ADMIN_ID:
+#         return
 
-    conn = sqlite3.connect("beabjoel.db")
-    cursor = conn.cursor()
+#     conn = sqlite3.connect("beabjoel.db")
+#     cursor = conn.cursor()
 
-    cursor.execute("SELECT COUNT(*) FROM users")
-    users = cursor.fetchone()[0]
+#     cursor.execute("SELECT COUNT(*) FROM users")
+#     users = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM matches")
-    matches = cursor.fetchone()[0]
+#     cursor.execute("SELECT COUNT(*) FROM matches")
+#     matches = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM predictions")
-    predictions = cursor.fetchone()[0]
+#     cursor.execute("SELECT COUNT(*) FROM predictions")
+#     predictions = cursor.fetchone()[0]
 
-    conn.close()
+#     conn.close()
 
-    await message.answer(
-        f"Users: {users}\n"
-        f"Matches: {matches}\n"
-        f"Predictions: {predictions}"
-    )
+#     await message.answer(
+#         f"Users: {users}\n"
+#         f"Matches: {matches}\n"
+#         f"Predictions: {predictions}"
+#     )
 
-@dp.message(Command("restoreusers"))
-async def restore_users(message: Message):
+# @dp.message(Command("restoreusers"))
+# async def restore_users(message: Message):
 
-    if message.from_user.id != ADMIN_ID:
-        return
+#     if message.from_user.id != ADMIN_ID:
+#         return
 
-    conn = sqlite3.connect("beabjoel.db")
-    cursor = conn.cursor()
+#     conn = sqlite3.connect("beabjoel.db")
+#     cursor = conn.cursor()
 
-    users = [
-        (346453501, "Amderufael Zemu"),
-        (994098064, "Eyoba"),
-        (889470829, "Filimon Abebe"),
-        (491733100, "Miki.Ez"),
-        (439551919, "Nat W"),
-        (417350592, "Nati Teshome"),
-        (6011155782, "Salim Mohammed"),
-        (5414134998, "Sami Lemma"),
-        (7800685972, "Thomas Girma"),
-        (689631553, "Tk"),
-        (474065434, "Wasihun Zeru"),
-    ]
+#     users = [
+#         (346453501, "Amderufael Zemu"),
+#         (994098064, "Eyoba"),
+#         (889470829, "Filimon Abebe"),
+#         (491733100, "Miki.Ez"),
+#         (439551919, "Nat W"),
+#         (417350592, "Nati Teshome"),
+#         (6011155782, "Salim Mohammed"),
+#         (5414134998, "Sami Lemma"),
+#         (7800685972, "Thomas Girma"),
+#         (689631553, "Tk"),
+#         (474065434, "Wasihun Zeru"),
+#     ]
 
-    inserted = 0
+#     inserted = 0
 
-    for telegram_id, full_name in users:
-        cursor.execute(
-            """
-            INSERT OR IGNORE INTO users
-            (telegram_id, username, full_name, approved, rejected)
-            VALUES (?, ?, ?, 1, 0)
-            """,
-            (telegram_id, None, full_name)
-        )
-        inserted += 1
+#     for telegram_id, full_name in users:
+#         cursor.execute(
+#             """
+#             INSERT OR IGNORE INTO users
+#             (telegram_id, username, full_name, approved, rejected)
+#             VALUES (?, ?, ?, 1, 0)
+#             """,
+#             (telegram_id, None, full_name)
+#         )
+#         inserted += 1
 
-    conn.commit()
-    conn.close()
+#     conn.commit()
+#     conn.close()
 
-    await message.answer(
-        f"✅ {inserted} approved users restored."
-    )
+#     await message.answer(
+#         f"✅ {inserted} approved users restored."
+#     )
 
-@dp.message(Command("restorematches"))
-async def restore_matches(message: Message):
+# @dp.message(Command("restorematches"))
+# async def restore_matches(message: Message):
 
-    if message.from_user.id != ADMIN_ID:
-        return
+#     if message.from_user.id != ADMIN_ID:
+#         return
 
-    conn = sqlite3.connect("beabjoel.db")
-    cursor = conn.cursor()
+#     conn = sqlite3.connect("beabjoel.db")
+#     cursor = conn.cursor()
 
-    matches = [
-        ("SouthAfrica🇿🇦", "Canada🇨🇦", "2026-06-28 21:00"),
-        ("Brazil🇧🇷", "Japan🇯🇵", "2026-06-28 21:00"),
-        ("Germany🇩🇪", "Paraguay🇵🇾", "2026-06-28 21:00"),
-        ("Netherlands🇳🇱", "Morocco🇲🇦", "2026-06-28 21:00"),
-        ("IvoryCoast🇨🇮", "Norway🇳🇴", "2026-06-28 21:00"),
-        ("France🇫🇷", "Sweden🇸🇪", "2026-06-28 21:00"),
-        ("Mexico🇲🇽", "Ecuador🇪🇨", "2026-06-28 21:00"),
-    ]
+#     matches = [
+#         ("SouthAfrica🇿🇦", "Canada🇨🇦", "2026-06-28 21:00"),
+#         ("Brazil🇧🇷", "Japan🇯🇵", "2026-06-28 21:00"),
+#         ("Germany🇩🇪", "Paraguay🇵🇾", "2026-06-28 21:00"),
+#         ("Netherlands🇳🇱", "Morocco🇲🇦", "2026-06-28 21:00"),
+#         ("IvoryCoast🇨🇮", "Norway🇳🇴", "2026-06-28 21:00"),
+#         ("France🇫🇷", "Sweden🇸🇪", "2026-06-28 21:00"),
+#         ("Mexico🇲🇽", "Ecuador🇪🇨", "2026-06-28 21:00"),
+#     ]
 
-    inserted = 0
+#     inserted = 0
 
-    for team1, team2, match_time in matches:
-        cursor.execute(
-            """
-            INSERT INTO matches
-            (team1, team2, match_time)
-            VALUES (?, ?, ?)
-            """,
-            (team1, team2, match_time)
-        )
-        inserted += 1
+#     for team1, team2, match_time in matches:
+#         cursor.execute(
+#             """
+#             INSERT INTO matches
+#             (team1, team2, match_time)
+#             VALUES (?, ?, ?)
+#             """,
+#             (team1, team2, match_time)
+#         )
+#         inserted += 1
 
-    conn.commit()
-    conn.close()
+#     conn.commit()
+#     conn.close()
 
-    await message.answer(
-        f"✅ {inserted} matches restored."
-    )
+#     await message.answer(
+#         f"✅ {inserted} matches restored."
+#     )
 
 
-def insert_prediction(cursor, user_id, match_id, score):
-    cursor.execute(
-        """
-        INSERT INTO predictions
-        (user_id, match_id, predicted_score)
-        VALUES (?, ?, ?)
-        """,
-        (user_id, match_id, score)
-    )
+# def insert_prediction(cursor, user_id, match_id, score):
+#     cursor.execute(
+#         """
+#         INSERT INTO predictions
+#         (user_id, match_id, predicted_score)
+#         VALUES (?, ?, ?)
+#         """,
+#         (user_id, match_id, score)
+#     )
 
-@dp.message(Command("restorepredictions"))
-async def restore_predictions(message: Message):
+# @dp.message(Command("restorepredictions"))
+# async def restore_predictions(message: Message):
 
-    if message.from_user.id != ADMIN_ID:
-        return
+#     if message.from_user.id != ADMIN_ID:
+#         return
 
-    conn = sqlite3.connect("beabjoel.db")
-    cursor = conn.cursor()
+#     conn = sqlite3.connect("beabjoel.db")
+#     cursor = conn.cursor()
 
-    count = 0
+#     count = 0
 
-    predictions = [
+#     predictions = [
 
-        (346453501,1,"1-1"),
-        (994098064,1,"1-2"),
-        (889470829,1,"1-2"),
-        (491733100,1,"0-1"),
-        (439551919,1,"1-2"),
-        (417350592,1,"1-1"),
-        (6011155782,1,"1-1"),
-        (5414134998,1,"0-2"),
-        (7800685972,1,"1-2"),
-        (689631553,1,"2-2"),
-        (474065434,1,"1-2"),
+#         (346453501,1,"1-1"),
+#         (994098064,1,"1-2"),
+#         (889470829,1,"1-2"),
+#         (491733100,1,"0-1"),
+#         (439551919,1,"1-2"),
+#         (417350592,1,"1-1"),
+#         (6011155782,1,"1-1"),
+#         (5414134998,1,"0-2"),
+#         (7800685972,1,"1-2"),
+#         (689631553,1,"2-2"),
+#         (474065434,1,"1-2"),
         
-        (346453501,2,"2-0"),
-        (994098064,2,"2-3"),
-        (889470829,2,"3-1"),
-        (491733100,2,"3-1"),
-        (439551919,2,"2-0"),
-        (417350592,2,"2-1"),
-        (6011155782,2,"2-1"),
-        (5414134998,2,"2-1"),
-        (7800685972,2,"3-1"),
-        (689631553,2,"3-0"),
-        (474065434,2,"2-1"),
+#         (346453501,2,"2-0"),
+#         (994098064,2,"2-3"),
+#         (889470829,2,"3-1"),
+#         (491733100,2,"3-1"),
+#         (439551919,2,"2-0"),
+#         (417350592,2,"2-1"),
+#         (6011155782,2,"2-1"),
+#         (5414134998,2,"2-1"),
+#         (7800685972,2,"3-1"),
+#         (689631553,2,"3-0"),
+#         (474065434,2,"2-1"),
         
-        (346453501,3,"2-1"),
-        (994098064,3,"3-1"),
-        (889470829,3,"2-0"),
-        (491733100,3,"2-0"),
-        (439551919,3,"2-1"),
-        (417350592,3,"2-0"),
-        (6011155782,3,"3-2"),
-        (5414134998,3,"2-0"),
-        (7800685972,3,"3-1"),
-        (689631553,3,"4-1"),
-        (474065434,3,"3-1"),
+#         (346453501,3,"2-1"),
+#         (994098064,3,"3-1"),
+#         (889470829,3,"2-0"),
+#         (491733100,3,"2-0"),
+#         (439551919,3,"2-1"),
+#         (417350592,3,"2-0"),
+#         (6011155782,3,"3-2"),
+#         (5414134998,3,"2-0"),
+#         (7800685972,3,"3-1"),
+#         (689631553,3,"4-1"),
+#         (474065434,3,"3-1"),
         
-        (346453501,4,"2-2"),
-        (994098064,4,"3-1"),
-        (889470829,4,"2-1"),
-        (491733100,4,"2-1"),
-        (439551919,4,"2-1"),
-        (417350592,4,"1-1"),
-        (6011155782,4,"0-1"),
-        (5414134998,4,"1-1"),
-        (7800685972,4,"2-2"),
-        (689631553,4,"1-1"),
-        (474065434,4,"1-1"),
+#         (346453501,4,"2-2"),
+#         (994098064,4,"3-1"),
+#         (889470829,4,"2-1"),
+#         (491733100,4,"2-1"),
+#         (439551919,4,"2-1"),
+#         (417350592,4,"1-1"),
+#         (6011155782,4,"0-1"),
+#         (5414134998,4,"1-1"),
+#         (7800685972,4,"2-2"),
+#         (689631553,4,"1-1"),
+#         (474065434,4,"1-1"),
         
-        (346453501,5,"2-2"),
-        (994098064,5,"1-2"),
-        (889470829,5,"1-1"),
-        (491733100,5,"1-1"),
-        (439551919,5,"1-2"),
-        (417350592,5,"1-2"),
-        (6011155782,5,"0-1"),
-        (5414134998,5,"1-1"),
-        (7800685972,5,"1-1"),
-        (689631553,5,"2-3"),
-        (474065434,5,"1-2"),
+#         (346453501,5,"2-2"),
+#         (994098064,5,"1-2"),
+#         (889470829,5,"1-1"),
+#         (491733100,5,"1-1"),
+#         (439551919,5,"1-2"),
+#         (417350592,5,"1-2"),
+#         (6011155782,5,"0-1"),
+#         (5414134998,5,"1-1"),
+#         (7800685972,5,"1-1"),
+#         (689631553,5,"2-3"),
+#         (474065434,5,"1-2"),
         
-        (346453501,6,"4-1"),
-        (994098064,6,"4-1"),
-        (889470829,6,"3-1"),
-        (491733100,6,"2-0"),
-        (439551919,6,"3-1"),
-        (417350592,6,"3-1"),
-        (6011155782,6,"3-0"),
-        (5414134998,6,"2-0"),
-        (7800685972,6,"4-2"),
-        (689631553,6,"3-1"),
-        (474065434,6,"3-0"),
+#         (346453501,6,"4-1"),
+#         (994098064,6,"4-1"),
+#         (889470829,6,"3-1"),
+#         (491733100,6,"2-0"),
+#         (439551919,6,"3-1"),
+#         (417350592,6,"3-1"),
+#         (6011155782,6,"3-0"),
+#         (5414134998,6,"2-0"),
+#         (7800685972,6,"4-2"),
+#         (689631553,6,"3-1"),
+#         (474065434,6,"3-0"),
         
-        (346453501,7,"2-1"),
-        (994098064,7,"2-1"),
-        (889470829,7,"1-2"),
-        (491733100,7,"2-0"),
-        (439551919,7,"2-2"),
-        (417350592,7,"1-0"),
-        (6011155782,7,"2-1"),
-        (5414134998,7,"1-0"),
-        (7800685972,7,"2-2"),
-        (689631553,7,"1-1"),
-        (474065434,7,"2-1"),
+#         (346453501,7,"2-1"),
+#         (994098064,7,"2-1"),
+#         (889470829,7,"1-2"),
+#         (491733100,7,"2-0"),
+#         (439551919,7,"2-2"),
+#         (417350592,7,"1-0"),
+#         (6011155782,7,"2-1"),
+#         (5414134998,7,"1-0"),
+#         (7800685972,7,"2-2"),
+#         (689631553,7,"1-1"),
+#         (474065434,7,"2-1"),
                 
-    ]
+#     ]
 
-    for user_id, match_id, score in predictions:
-        insert_prediction(cursor, user_id, match_id, score)
-        count += 1
+#     for user_id, match_id, score in predictions:
+#         insert_prediction(cursor, user_id, match_id, score)
+#         count += 1
 
-    conn.commit()
-    conn.close()
+#     conn.commit()
+#     conn.close()
 
-    await message.answer(
-        f"✅ {count} predictions restored."
-    )
+#     await message.answer(
+#         f"✅ {count} predictions restored."
+#     )
 
 
 
