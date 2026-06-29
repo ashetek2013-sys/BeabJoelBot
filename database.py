@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS scores (
 )
 """)
 
-# Settings table
+# ---------------- SETTINGS ----------------
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
@@ -52,16 +52,39 @@ CREATE TABLE IF NOT EXISTS settings (
 )
 """)
 
-# Default setting
 cursor.execute("""
 INSERT OR IGNORE INTO settings (key, value)
 VALUES ('predictions_blocked', '0')
 """)
 
-#cursor.execute("""
-#ALTER TABLE matches
-#ADD COLUMN manually_open INTEGER DEFAULT 0
-#""")
+# ---------- Add new columns safely ----------
+
+def add_column(table, column, definition):
+    cursor.execute(f"PRAGMA table_info({table})")
+    columns = [row[1] for row in cursor.fetchall()]
+
+    if column not in columns:
+        cursor.execute(
+            f"ALTER TABLE {table} ADD COLUMN {column} {definition}"
+        )
+
+# Added only if missing
+add_column("matches", "manually_open", "INTEGER DEFAULT 0")
+add_column("matches", "prediction_blocked", "INTEGER DEFAULT 0")
+
+
+try:
+    cursor.execute("""
+    ALTER TABLE matches
+    ADD COLUMN manually_open INTEGER DEFAULT 0
+    """)
+except sqlite3.OperationalError:
+    pass
+
+# cursor.execute("""
+# ALTER TABLE matches
+# ADD COLUMN manually_open INTEGER DEFAULT 0
+# """)
 
 conn.commit()
 conn.close()

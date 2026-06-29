@@ -1727,6 +1727,239 @@ async def delete_result(message: Message):
 
 
 
+@dp.message(Command("dbstats"))
+async def dbstats(message: Message):
+
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    conn = sqlite3.connect("beabjoel.db")
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM users")
+    users = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM matches")
+    matches = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM predictions")
+    predictions = cursor.fetchone()[0]
+
+    conn.close()
+
+    await message.answer(
+        f"Users: {users}\n"
+        f"Matches: {matches}\n"
+        f"Predictions: {predictions}"
+    )
+
+@dp.message(Command("restoreusers"))
+async def restore_users(message: Message):
+
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    conn = sqlite3.connect("beabjoel.db")
+    cursor = conn.cursor()
+
+    users = [
+        (346453501, "Amderufael Zemu"),
+        (994098064, "Eyoba"),
+        (889470829, "Filimon Abebe"),
+        (491733100, "Miki.Ez"),
+        (439551919, "Nat W"),
+        (417350592, "Nati Teshome"),
+        (6011155782, "Salim Mohammed"),
+        (5414134998, "Sami Lemma"),
+        (7800685972, "Thomas Girma"),
+        (689631553, "Tk")
+        (474065434, "Wasihun Zeru"),
+    ]
+
+    inserted = 0
+
+    for telegram_id, full_name in users:
+        cursor.execute(
+            """
+            INSERT OR IGNORE INTO users
+            (telegram_id, username, full_name, approved, rejected)
+            VALUES (?, ?, ?, 1, 0)
+            """,
+            (telegram_id, None, full_name)
+        )
+        inserted += 1
+
+    conn.commit()
+    conn.close()
+
+    await message.answer(
+        f"✅ {inserted} approved users restored."
+    )
+
+@dp.message(Command("restorematches"))
+async def restore_matches(message: Message):
+
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    conn = sqlite3.connect("beabjoel.db")
+    cursor = conn.cursor()
+
+    matches = [
+        ("SouthAfrica🇿🇦", "Canada🇨🇦", "2026-06-28 21:00"),
+        ("Brazil🇧🇷", "Japan🇯🇵", "2026-06-28 21:00"),
+        ("Germany🇩🇪", "Paraguay🇵🇾", "2026-06-28 21:00"),
+        ("Netherlands🇳🇱", "Morocco🇲🇦", "2026-06-28 21:00"),
+        ("IvoryCoast🇨🇮", "Norway🇳🇴", "2026-06-28 21:00"),
+        ("France🇫🇷", "Sweden🇸🇪", "2026-06-28 21:00"),
+        ("Mexico🇲🇽", "Ecuador🇪🇨", "2026-06-28 21:00"),
+    ]
+
+    inserted = 0
+
+    for team1, team2, match_time in matches:
+        cursor.execute(
+            """
+            INSERT INTO matches
+            (team1, team2, match_time)
+            VALUES (?, ?, ?)
+            """,
+            (team1, team2, match_time)
+        )
+        inserted += 1
+
+    conn.commit()
+    conn.close()
+
+    await message.answer(
+        f"✅ {inserted} matches restored."
+    )
+
+
+def insert_prediction(cursor, user_id, match_id, score):
+    cursor.execute(
+        """
+        INSERT INTO predictions
+        (user_id, match_id, predicted_score)
+        VALUES (?, ?, ?)
+        """,
+        (user_id, match_id, score)
+    )
+
+@dp.message(Command("restorepredictions"))
+async def restore_predictions(message: Message):
+
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    conn = sqlite3.connect("beabjoel.db")
+    cursor = conn.cursor()
+
+    count = 0
+
+    predictions = [
+
+        (346453501,49,"1-1"),
+        (994098064,49,"1-2"),
+        (889470829,49,"1-2"),
+        (491733100,49,"0-1"),
+        (439551919,49,"1-2"),
+        (417350592,49,"1-1"),
+        (6011155782,49,"1-1"),
+        (5414134998,49,"0-2"),
+        (7800685972,49,"1-2"),
+        (689631553,49,"2-2"),
+        (474065434,49,"1-2"),
+        
+        (346453501,50,"2-0"),
+        (994098064,50,"2-3"),
+        (889470829,50,"3-1"),
+        (491733100,50,"3-1"),
+        (439551919,50,"2-0"),
+        (417350592,50,"2-1"),
+        (6011155782,50,"2-1"),
+        (5414134998,50,"2-1"),
+        (7800685972,50,"3-1"),
+        (689631553,50,"3-0"),
+        (474065434,50,"2-1"),
+        
+        (346453501,51,"2-1"),
+        (994098064,51,"3-1"),
+        (889470829,51,"2-0"),
+        (491733100,51,"2-0"),
+        (439551919,51,"2-1"),
+        (417350592,51,"2-0"),
+        (6011155782,51,"3-2"),
+        (5414134998,51,"2-0"),
+        (7800685972,51,"3-1"),
+        (689631553,51,"4-1"),
+        (474065434,51,"3-1"),
+        
+        (346453501,52,"2-2"),
+        (994098064,52,"3-1"),
+        (889470829,52,"2-1"),
+        (491733100,52,"2-1"),
+        (439551919,52,"2-1"),
+        (417350592,52,"1-1"),
+        (6011155782,52,"0-1"),
+        (5414134998,52,"1-1"),
+        (7800685972,52,"2-2"),
+        (689631553,52,"1-1"),
+        (474065434,52,"1-1"),
+        
+        (346453501,53,"2-2"),
+        (994098064,53,"1-2"),
+        (889470829,53,"1-1"),
+        (491733100,53,"1-1"),
+        (439551919,53,"1-2"),
+        (417350592,53,"1-2"),
+        (6011155782,53,"0-1"),
+        (5414134998,53,"1-1"),
+        (7800685972,53,"1-1"),
+        (689631553,53,"2-3"),
+        (474065434,53,"1-2"),
+        
+        (346453501,54,"4-1"),
+        (994098064,54,"4-1"),
+        (889470829,54,"3-1"),
+        (491733100,54,"2-0"),
+        (439551919,54,"3-1"),
+        (417350592,54,"3-1"),
+        (6011155782,54,"3-0"),
+        (5414134998,54,"2-0"),
+        (7800685972,54,"4-2"),
+        (689631553,54,"3-1"),
+        (474065434,54,"3-0"),
+        
+        (346453501,55,"2-1"),
+        (994098064,55,"2-1"),
+        (889470829,55,"1-2"),
+        (491733100,55,"2-0"),
+        (439551919,55,"2-2"),
+        (417350592,55,"1-0"),
+        (6011155782,55,"2-1"),
+        (5414134998,55,"1-0"),
+        (7800685972,55,"2-2"),
+        (689631553,55,"1-1"),
+        (474065434,55,"2-1"),
+                
+    ]
+
+    for user_id, match_id, score in predictions:
+        insert_prediction(cursor, user_id, match_id, score)
+        count += 1
+
+    conn.commit()
+    conn.close()
+
+    await message.answer(
+        f"✅ {count} predictions restored."
+    )
+
+
+
+
+
 
 
 
