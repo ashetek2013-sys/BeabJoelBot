@@ -57,18 +57,18 @@ INSERT OR IGNORE INTO settings (key, value)
 VALUES ('predictions_blocked', '0')
 """)
 
----------- Add new columns safely ----------
+# ---------- Add new columns safely ----------
 
 def add_column(table, column, definition):
-   cursor.execute(f"PRAGMA table_info({table})")
-   columns = [row[1] for row in cursor.fetchall()]
+    cursor.execute(f"PRAGMA table_info({table})")
+    columns = [row[1] for row in cursor.fetchall()]
 
-   if column not in columns:
-       cursor.execute(
-           f"ALTER TABLE {table} ADD COLUMN {column} {definition}"
-       )
+    if column not in columns:
+        cursor.execute(
+            f"ALTER TABLE {table} ADD COLUMN {column} {definition}"
+        )
 
-Added only if missing
+# Added only if missing
 add_column("matches", "manually_open", "INTEGER DEFAULT 0")
 add_column("matches", "prediction_blocked", "INTEGER DEFAULT 0")
 
