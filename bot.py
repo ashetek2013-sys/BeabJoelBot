@@ -1725,6 +1725,197 @@ async def delete_result(message: Message):
     )
 
 
+@dp.message(Command("adduser"))
+async def add_user(message: Message):
+
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    parts = message.text.split(maxsplit=2)
+
+    if len(parts) != 3:
+        await message.answer(
+            "Usage:\n"
+            "/adduser TELEGRAM_ID FULL_NAME"
+        )
+        return
+
+    try:
+        telegram_id = int(parts[1])
+    except ValueError:
+        await message.answer("❌ Invalid Telegram ID.")
+        return
+
+    full_name = parts[2]
+
+    conn = sqlite3.connect("beabjoel.db")
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        INSERT OR REPLACE INTO users
+        (telegram_id, full_name, approved, rejected)
+        VALUES (?, ?, 1, 0)
+        """,
+        (telegram_id, full_name)
+    )
+
+    conn.commit()
+    conn.close()
+
+    await message.answer(
+        f"✅ User added.\n\n"
+        f"{full_name}\n"
+        f"ID: {telegram_id}"
+    )
+
+@dp.message(Command("deleteuser"))
+async def delete_user(message: Message):
+
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    parts = message.text.split()
+
+    if len(parts) != 2:
+        await message.answer(
+            "Usage:\n"
+            "/deleteuser TELEGRAM_ID"
+        )
+        return
+
+    try:
+        telegram_id = int(parts[1])
+    except ValueError:
+        await message.answer("❌ Invalid Telegram ID.")
+        return
+
+    conn = sqlite3.connect("beabjoel.db")
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "DELETE FROM predictions WHERE user_id=?",
+        (telegram_id,)
+    )
+
+    cursor.execute(
+        "DELETE FROM scores WHERE user_id=?",
+        (telegram_id,)
+    )
+
+    cursor.execute(
+        "DELETE FROM users WHERE telegram_id=?",
+        (telegram_id,)
+    )
+
+    conn.commit()
+    conn.close()
+
+    await message.answer("✅ User deleted.")
+
+@dp.message(Command("adminpredict"))
+async def admin_predict(message: Message):
+
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    parts = message.text.split()
+
+    if len(parts) != 4:
+        await message.answer(
+            "Usage:\n"
+            "/adminpredict USER_ID MATCH_ID SCORE\n\n"
+            "Example:\n"
+            "/adminpredict 7800685972 3 2-1"
+        )
+        return
+
+    try:
+        user_id = int(parts[1])
+        match_id = int(parts[2])
+    except ValueError:
+        await message.answer("❌ Invalid ID.")
+        return
+
+    score = parts[3]
+
+    conn = sqlite3.connect("beabjoel.db")
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT telegram_id
+        FROM users
+        WHERE telegram_id=?
+        """,
+        (user_id,)
+    )
+
+    if not cursor.fetchone():
+        conn.close()
+        await message.answer("❌ User not found.")
+        return
+
+    cursor.execute(
+        """
+        SELECT id
+        FROM matches
+        WHERE id=?
+        """,
+        (match_id,)
+    )
+
+    if not cursor.fetchone():
+        conn.close()
+        await message.answer("❌ Match not found.")
+        return
+
+    cursor.execute(
+        """
+        SELECT id
+        FROM predictions
+        WHERE user_id=? AND match_id=?
+        """,
+        (user_id, match_id)
+    )
+
+    existing = cursor.fetchone()
+
+    if existing:
+        cursor.execute(
+            """
+            UPDATE predictions
+            SET predicted_score=?
+            WHERE user_id=? AND match_id=?
+            """,
+            (score, user_id, match_id)
+        )
+
+        reply = "✅ Prediction updated."
+
+    else:
+        cursor.execute(
+            """
+            INSERT INTO predictions
+            (user_id, match_id, predicted_score)
+            VALUES (?, ?, ?)
+            """,
+            (user_id, match_id, score)
+        )
+
+        reply = "✅ Prediction added."
+
+    conn.commit()
+    conn.close()
+
+    await message.answer(
+        f"{reply}\n\n"
+        f"User: {user_id}\n"
+        f"Match: {match_id}\n"
+        f"Prediction: {score}"
+    )
+
+
 
 
 # @dp.message(Command("dbstats"))
